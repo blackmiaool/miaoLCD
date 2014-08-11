@@ -1,0 +1,1 @@
+cmd_/root/work/miaoLCD/driver/drivers/linux-driver/rp_usbdisplay.ko := arm-none-linux-gnueabi-ld -EL -r  -T /home/blackmiaool/pro/cb/kernel-source/scripts/module-common.lds --build-id  -o /root/work/miaoLCD/driver/drivers/linux-driver/rp_usbdisplay.ko /root/work/miaoLCD/driver/drivers/linux-driver/rp_usbdisplay.o /root/work/miaoLCD/driver/drivers/linux-driver/rp_usbdisplay.mod.o
