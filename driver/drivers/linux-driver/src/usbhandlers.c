@@ -26,7 +26,7 @@ struct wifi_fb_info{
     int right;
     int bottom;
     int line_width;
-    const pixel_type_t *framebuffer;
+    
 
 };
 struct rpusbdisp_dev {
@@ -38,6 +38,8 @@ struct rpusbdisp_dev {
     struct mutex resource;
     struct mutex reading;
     bool in_use;
+    pixel_type_t *framebuffer;
+    u8 buf[320*240*2];
 };
 int wifidisp_open(struct inode *inode,struct file *filp);
 int wifidisp_release(struct inode *inode,struct file *filp);
@@ -63,6 +65,7 @@ int wifidisp_release(struct inode *inode,struct file *filp)
     struct rpusbdisp_dev *wifidispp;
     wifidispp=container_of(inode->i_cdev,struct rpusbdisp_dev,cdev);
     wifidispp->in_use=false;
+    printk("release");
     return 0;
 }
 ssize_t wifidisp_read(struct file *filp,char __user *buf, size_t count, \
@@ -73,25 +76,41 @@ loff_t* f_pos)
     int result;
     struct rpusbdisp_dev *wifidispp;
     struct wifi_fb_info *fb_infop;
-    
+    int last_copied_y;
+    pixel_type_t *framebuffer;
+    size_t image_size;// = (fb_infop->right-fb_infop->x + 1)* (fb_infop->bottom-fb_infop->y+1) * (RP_DISP_DEFAULT_PIXEL_BITS/8);
     wifidispp=(struct rpusbdisp_dev*)filp->private_data;
-    mutex_lock(&wifidispp->resource);
+    framebuffer=wifidispp->buf;
     fb_infop=&wifidispp->fb_info;
-    
+    image_size = (fb_infop->right-fb_infop->x + 1)* (fb_infop->bottom-fb_infop->y+1) * (RP_DISP_DEFAULT_PIXEL_BITS/8);
+    // if(*f_pos>=sizeof(struct wifi_fb_info))
+    //     return 0;   
     printk("count=%d",count);
-    if(*f_pos>=4)
-        return 0;
+    printk("fpos=%ld\n",*f_pos);
+    mutex_lock(&wifidispp->resource);
+    //printk("recv_1\n");
+
 
     //wifidispp->fb_info.x;
-    
+    framebuffer+=(fb_infop->y*fb_infop->line_width+fb_infop->x);
+    printk("a");
     result=copy_to_user(buf, \
         (char *)fb_infop,sizeof(struct wifi_fb_info));
+    printk("b");
     buf+=sizeof(struct wifi_fb_info);
-    /* result=copy_to_user(buf, \
-         "bsslkjlll\n",wifidispp->fb_info);*/
-    *f_pos+=sizeof(struct wifi_fb_info);
+    printk("c");
+    for(last_copied_y=fb_infop->y;last_copied_y<=fb_infop->bottom;last_copied_y++)
+    {
+        printk("d");
+        result=copy_to_user(buf,(char *)framebuffer,(fb_infop->right-fb_infop->x+1)*2);
+        printk("e");
+        framebuffer+=fb_infop->line_width-fb_infop->right-1+fb_infop->x;
+        buf+=(fb_infop->right-fb_infop->x+1)*2;
+    }
+    printk("f");
+    *f_pos+=image_size+sizeof(struct wifi_fb_info);
     mutex_unlock(&wifidispp->reading);
-    return sizeof(struct wifi_fb_info);
+    return sizeof(struct wifi_fb_info)+image_size;
 }
 
 
@@ -140,6 +159,9 @@ int rpusbdisp_usb_try_draw_rect(struct rpusbdisp_dev * dev, int x, int y, int ri
 
 int rpusbdisp_usb_try_send_image(struct rpusbdisp_dev * dev, const pixel_type_t * framebuffer, int x, int y, int right, int bottom, int line_width, int clear_dirty)
 {
+    int i=0;
+    int j=0;
+    long cnt=320*240*2;
 
     //int last_copied_x, last_copied_y;
 
@@ -148,23 +170,32 @@ int rpusbdisp_usb_try_send_image(struct rpusbdisp_dev * dev, const pixel_type_t 
     //printk("buffer=%d\n",(int)framebuffer);
     // printk("imaage\n");
      //mutex_unlock(resource);
-    // printk("1sx=%d",x);
-    // printk("y=%d",y);
-    // printk("right=%d",right);
-    // printk("bottom=%d",bottom);
-    // printk("line_width=%d",line_width);
+    printk("1sx=%d",x);
+    printk("ly=%d",y);
+    printk("lright=%d",right);
+    printk("lbottom=%d",bottom);
+    printk("lline_width=%d",line_width);
     // do not transmit zero size image
-
+    //printk("send_image\n");
     if (!image_size) return 1;
     if(dev->in_use==false) return 0;
-    dev->fb_info.framebuffer=framebuffer;//+y*line_width + x;
+    dev->framebuffer=(pixel_type_t *)framebuffer;//+y*line_width + x;
+    for(i=0;i<cnt;i++)
+    {
+        dev->buf[i]=((u8 *)framebuffer)[i];
+
+    }
     dev->fb_info.x=x;
     dev->fb_info.y=y;
     dev->fb_info.right=right;
     dev->fb_info.bottom=bottom;
     dev->fb_info.line_width=line_width;
+    printk("prepare_reso");
+    //printk("send_1\n");
     mutex_unlock(&dev->resource);
+    //printk("send_2\n");
     mutex_lock(&dev->reading);
+    //printk("send_3\n");
     // framebuffer += (y*line_width + x);
     // {
     //     for (last_copied_x = right; last_copied_x >= x; --last_copied_x) {
