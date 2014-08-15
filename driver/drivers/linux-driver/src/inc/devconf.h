@@ -20,8 +20,8 @@
 #define RP_DISP_USB_VENDOR_ID   0xFCCF // RP Pseudo vendor id
 #define RP_DISP_USB_PRODUCT_ID  0xA001
 
-#define RP_DISP_DEFAULT_HEIGHT      240
-#define RP_DISP_DEFAULT_WIDTH       320
+#define RP_DISP_DEFAULT_HEIGHT      480
+#define RP_DISP_DEFAULT_WIDTH       854
 #define RP_DISP_DEFAULT_PIXEL_BITS  16
 typedef _u16  pixel_type_t; 
 
