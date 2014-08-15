@@ -1,16 +1,20 @@
+#include <jpeglib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <unistd.h>
 #include <linux/in.h>
 #include <stdlib.h>
+#include <memory.h>
 
 #include <fcntl.h>
 #define width  854
 #define height 480
 #define PORT   8090
 #define PKG_MAX 50000L
+#define DELAY_US 80000
 typedef unsigned char u8;
 typedef unsigned short u16;
 typedef unsigned long u32;
@@ -24,7 +28,8 @@ struct wifi_fb_info{
   u8 fb_buf[width*height*2];
 }fb_info;
 int skt;
-  struct sockaddr_in server_addr,client_addr;
+ struct sockaddr_in server_addr,client_addr;
+void fb_send(u8 *buf,u32 cnt);// cnt <=60000
 int main()
 {
   int fp;
@@ -71,7 +76,7 @@ int main()
 	    fb_send(hand_addr+i,PKG_MAX+4);
 	    //fb_send(hand_addr+i,5);
 
-	    usleep(80000);
+	    usleep(DELAY_US);
 	  }
 	  hand_addr[i+1]=2;//end flag
 	  hand_addr[i+2]=index;
