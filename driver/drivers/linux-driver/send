@@ -1,6 +1,6 @@
 #!/usr/bin/expect -f
 spawn make
-spawn scp rp_usbdisplay.ko linaro@192.168.123.6:~/
+spawn scp rp_usbdisplay.ko linaro@192.168.1.100:~/
 set timeout 20000
 expect "word:"
 set timeout 300
