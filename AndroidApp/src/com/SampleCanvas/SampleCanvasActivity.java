@@ -41,6 +41,8 @@ import android.widget.TextView;
 
 public class SampleCanvasActivity extends Activity implements OnTouchListener {
 
+	int HEIGHT=854;
+	int WIDTH=480;
 	DrawPanel dp;
 	Bitmap bmp;
 	StartServer sts;
@@ -65,6 +67,7 @@ public class SampleCanvasActivity extends Activity implements OnTouchListener {
 					SampleCanvasActivity.this.fb_buf[iy*line_width+ix]=buf[i++];
 				}
 			}
+			SampleCanvasActivity.this.update=true;
 			
 		}
 	}
@@ -78,7 +81,6 @@ public class SampleCanvasActivity extends Activity implements OnTouchListener {
 		
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.main);
-		colors=new int[320*240*3];
 		
 		//bmp= Bitmap.createBitmap(320, 240, Bitmap.Config.RGB_565);
 		dp = new DrawPanel(this); 
@@ -183,7 +185,7 @@ public class SampleCanvasActivity extends Activity implements OnTouchListener {
 		protected void onDraw(Canvas canvas) {
 			// TODO Auto-generated method stub
 			super.onDraw(canvas);
-			canvas.drawBitmap(fb_buf, 0,320,  0, 0, 320, 240, false, null);
+			canvas.drawBitmap(fb_buf, 0,HEIGHT,  0, 0, HEIGHT, WIDTH, false, null);
 			
 				//update=false;
 			
@@ -234,9 +236,9 @@ public class SampleCanvasActivity extends Activity implements OnTouchListener {
 		int preIndex=0;
 		int preCode=0;
 		boolean bak;
-		byte[] message = new byte[40000];
+		byte[] message = new byte[100000];
 		
-		byte[] message_bak=new byte[1];
+		byte[] message_bak;//=new byte[1];
 		Boolean first_pkg=true;
 		
 
@@ -259,10 +261,6 @@ public class SampleCanvasActivity extends Activity implements OnTouchListener {
 				{
 					if(!started)
 						started=true;
-					if(lenth!=30004)
-					{
-						Log.e("miao","lenth error");
-					}
 					
 					int len=(lenth-24)/2;
 					ByteBuffer bf=ByteBuffer.wrap(pkg);
@@ -296,33 +294,39 @@ public class SampleCanvasActivity extends Activity implements OnTouchListener {
 					bf.order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(pkg_short, 0, lenth/2);	
 					
 					//Log.i("miao", "lenth="+len);
+					
+//					pkg_fb.x=bf.order(ByteOrder.LITTLE_ENDIAN).asIntBuffer().get(1);					
+//					pkg_fb.y=bf.order(ByteOrder.LITTLE_ENDIAN).asIntBuffer().get(2);
+//					pkg_fb.right=bf.order(ByteOrder.LITTLE_ENDIAN).asIntBuffer().get(3);
+//					pkg_fb.bottom=bf.order(ByteOrder.LITTLE_ENDIAN).asIntBuffer().get(4);
+//					pkg_fb.line_width=bf.order(ByteOrder.LITTLE_ENDIAN).asIntBuffer().get(5);
+					
+					int x=bf.order(ByteOrder.LITTLE_ENDIAN).asIntBuffer().get(1);					
+					int y=bf.order(ByteOrder.LITTLE_ENDIAN).asIntBuffer().get(2);
+					int right=bf.order(ByteOrder.LITTLE_ENDIAN).asIntBuffer().get(3);
+					int bottom=bf.order(ByteOrder.LITTLE_ENDIAN).asIntBuffer().get(4);
+					int line_width=bf.order(ByteOrder.LITTLE_ENDIAN).asIntBuffer().get(5);
+					
+					int i=0;
+					for(int iy=y;iy<=bottom;iy++)
+					{
+						for(int ix=x;ix<=right;ix++)
+						{
+							SampleCanvasActivity.this.fb_buf[iy*line_width+ix]=rgb565to888(pkg_short[i+12]);
+							i++;
+						}
+					}
 					SampleCanvasActivity.this.update=true;
-					pkg_fb.x=bf.order(ByteOrder.LITTLE_ENDIAN).asIntBuffer().get(1);					
-					pkg_fb.y=bf.order(ByteOrder.LITTLE_ENDIAN).asIntBuffer().get(2);
-					pkg_fb.right=bf.order(ByteOrder.LITTLE_ENDIAN).asIntBuffer().get(3);
-					pkg_fb.bottom=bf.order(ByteOrder.LITTLE_ENDIAN).asIntBuffer().get(4);
-					pkg_fb.line_width=bf.order(ByteOrder.LITTLE_ENDIAN).asIntBuffer().get(5);
-					
-//					int i=0;
-//					for(int iy=y;iy<=bottom;iy++)
-//					{
-//						for(int ix=x;ix<=right;ix++)
-//						{
-//							SampleCanvasActivity.this.fb_buf[iy*line_width+ix]=rgb565to888(pkg_short[i+12]);
-//							i++;
-//						}
-//					}
-					
-					for(int i=0;i<len;i++)
-						pkg_fb.buf[i]=rgb565to888(pkg_short[i+12]);//12:24byte=12short
-					
-					pkg_fb.draw();
+//					for(int i=0;i<len;i++)
+//						pkg_fb.buf[i]=rgb565to888(pkg_short[i+12]);//12:24byte=12short
+//					
+//					pkg_fb.draw();
 					
 					
 					
 //					Log.i("miao","pkg_short="+pkg_short[12]);
 //					Log.i("miao","buf="+fb_buf[0]);
-					Log.i("miao","x="+pkg_fb.x+"y="+pkg_fb.y+"right="+pkg_fb.right+"bottom"+pkg_fb.bottom);
+//					Log.i("miao","x="+pkg_fb.x+"y="+pkg_fb.y+"right="+pkg_fb.right+"bottom"+pkg_fb.bottom);
 						
 				}
 				else {
@@ -416,7 +420,7 @@ public class SampleCanvasActivity extends Activity implements OnTouchListener {
 						pkg_handle(message_bak, code, start_flag, index,lenth);
 					}
 					else {
-						if((preIndex>index&&index!=128)||((code==0)&&(preCode==0)&&(index-preIndex!=1&&index-preIndex!=-255))&&!first_pkg)
+						if((preIndex>index&&index!=-128)||((code==0)&&(preCode==0)&&(index-preIndex!=1&&index-preIndex!=-255))&&!first_pkg)
 						{
 							message_bak=pkg;
 							bak=true;
