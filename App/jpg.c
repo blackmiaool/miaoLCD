@@ -11,7 +11,7 @@
  #include <jpeglib.h>
  #include <jerror.h>
  
- #define BITS_PER_FB 24
+ #define BITS_PER_FB 16
  /*RGB565转RGB24函数
  *@rgb565: 指向存放rgb565数据的起始地址
  *@rgb24：指向存放rgb24数据的起始地址
@@ -164,7 +164,7 @@
      }
      //格式转换
      gettimeofday(&endtime,0);     
-     //     RGB565_to_RGB24(trgb,rgb,fb_var_info.xres,fb_var_info.yres);
+     RGB565_to_RGB24(trgb,rgb,fb_var_info.xres,fb_var_info.yres);
 
 
 
