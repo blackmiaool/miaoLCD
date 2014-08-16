@@ -4,7 +4,8 @@
  #include<unistd.h>
  #include<fcntl.h>
  #include <malloc.h>
- 
+#include <sys/time.h> 
+#include <time.h>
  #include<linux/fb.h>
  
  #include <jpeglib.h>
@@ -101,6 +102,7 @@
      unsigned char *trgb;
      unsigned char *rgb;
      int buffer_size;
+     struct timeval starttime,endtime;
  
      //打开framebuffer设备
      fd = open("/dev/fb2",O_RDONLY);
@@ -154,17 +156,25 @@
          goto here;
      }
      //获取一帧数据
+     gettimeofday(&starttime,0);
      if(read(fd,trgb,buffer_size) < 0)
      {
          printf("reaf failed!\n");
          goto read_fail;
      }
      //格式转换
-     RGB565_to_RGB24(trgb,rgb,fb_var_info.xres,fb_var_info.yres);
+     gettimeofday(&endtime,0);     
+     //     RGB565_to_RGB24(trgb,rgb,fb_var_info.xres,fb_var_info.yres);
+
+
+
      //jpeg压缩
-     if(jpeg_compress(rgb,fb_var_info.xres,fb_var_info.yres)<0)
+     if(jpeg_compress(trgb,fb_var_info.xres,fb_var_info.yres)<0)
          printf("compress failed!\n");        
-     
+
+     double timeuse = 1000000*(endtime.tv_sec - starttime.tv_sec) + endtime.tv_usec - starttime.tv_usec;
+
+     printf("timeuse=%f\n",timeuse);
  read_fail:
      free(rgb);
  here:

@@ -1,4 +1,4 @@
-#include <jpeglib.h>
+//#include <jpeglib.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -46,7 +46,7 @@ int main()
   memset(&server_addr,0,sizeof(server_addr));
   server_addr.sin_family=AF_INET;
   server_addr.sin_port=htons(PORT);
-  server_addr.sin_addr.s_addr=inet_addr("192.168.1.101");
+  server_addr.sin_addr.s_addr=inet_addr("192.168.1.100");
 
   fp=open("/dev/miao",O_RDONLY);
   if(fp<0)
