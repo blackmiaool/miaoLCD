@@ -29,7 +29,8 @@
  
      for(i = 0;i < whole;i++)
      {    
-         r = ((*pix565)>>11)&0x1f;
+       int pix=*pix565;
+       /*         r = ((*pix565)>>11)&0x1f;
          *rgb24 = (r<<3) | (r>>2);
          rgb24++;
          g = ((*pix565)>>5)&0x3f;
@@ -38,6 +39,9 @@
          b = (*pix565)&0x1f;
          *rgb24 = (b<<3) | (b>>2);
          rgb24++;
+       */
+	 *(unsigned int *)rgb24=((pix&0xf800)<<8)|((pix&0x7e0)<<5)|((pix&0x1f)<<3);
+	 rgb24+=3;
          pix565++;    
              
      }
@@ -156,7 +160,7 @@
          goto here;
      }
      //获取一帧数据
-     gettimeofday(&starttime,0);
+
      if(read(fd,trgb,buffer_size) < 0)
      {
          printf("reaf failed!\n");
@@ -165,7 +169,7 @@
      //格式转换
      gettimeofday(&endtime,0);     
      RGB565_to_RGB24(trgb,rgb,fb_var_info.xres,fb_var_info.yres);
-
+     gettimeofday(&starttime,0);
 
 
      //jpeg压缩
