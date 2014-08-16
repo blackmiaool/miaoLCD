@@ -11,7 +11,7 @@
  #include <jpeglib.h>
  #include <jerror.h>
  
- #define BITS_PER_FB 16
+ #define BITS_PER_FB 24
  /*RGB565转RGB24函数
  *@rgb565: 指向存放rgb565数据的起始地址
  *@rgb24：指向存放rgb24数据的起始地址
