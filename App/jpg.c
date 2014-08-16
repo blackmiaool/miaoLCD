@@ -169,7 +169,7 @@
 
 
      //jpeg压缩
-     if(jpeg_compress(trgb,fb_var_info.xres,fb_var_info.yres)<0)
+     if(jpeg_compress(rgb,fb_var_info.xres,fb_var_info.yres)<0)
          printf("compress failed!\n");        
 
      double timeuse = 1000000*(endtime.tv_sec - starttime.tv_sec) + endtime.tv_usec - starttime.tv_usec;
