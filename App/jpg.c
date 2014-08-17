@@ -10,7 +10,7 @@
  #include <jpeglib.h>
  #include <jerror.h>
  
- #define BITS_PER_FB 16
+ #define BITS_PER_FB 24
  /*RGB565转RGB24函数
  *@rgb565: 指向存放rgb565数据的起始地址
  *@rgb24：指向存放rgb24数据的起始地址
@@ -103,7 +103,7 @@
      int buffer_size;
  
      //打开framebuffer设备
-     fd = open("/dev/fb2",O_RDONLY);
+     fd = open("/dev/fb0",O_RDONLY);
      if(fd < 0)
      {
          printf("can not open dev\n");
